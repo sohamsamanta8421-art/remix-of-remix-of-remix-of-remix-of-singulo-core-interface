@@ -431,6 +431,7 @@ export class SinguloCoreEngine {
     this.targetPan.y = THREE.MathUtils.clamp(this.targetPan.y - dy * 4, -2, 2);
   }
   reset() {
+    this.touch();
     this.targetZoom = 1;
     this.targetRotation = { x: -0.1, y: 0 };
     this.targetPan = { x: 0, y: 0 };
@@ -499,11 +500,19 @@ export class SinguloCoreEngine {
     this.energy = damp(this.energy, energyTarget, 5, dt);
     this.spin = damp(this.spin, this.calm ? this.targetSpin * 0.3 : this.targetSpin, 3, dt);
     this.pulse = damp(this.pulse, 0, 3.2, dt);
-    this.zoom = damp(this.zoom, this.targetZoom, 6, dt);
-    this.rotation.x = damp(this.rotation.x, this.targetRotation.x, 6, dt);
-    this.rotation.y = damp(this.rotation.y, this.targetRotation.y, 6, dt);
-    this.pan.x = damp(this.pan.x, this.targetPan.x, 6, dt);
-    this.pan.y = damp(this.pan.y, this.targetPan.y, 6, dt);
+    // Auto-recenter: drift view targets back to rest ~1.2s after the last input.
+    if (performance.now() - this.lastInput > 1200) {
+      this.targetZoom = damp(this.targetZoom, 1, 2.2, dt);
+      this.targetRotation.x = damp(this.targetRotation.x, -0.1, 2.2, dt);
+      this.targetRotation.y = damp(this.targetRotation.y, 0, 2.2, dt);
+      this.targetPan.x = damp(this.targetPan.x, 0, 2.2, dt);
+      this.targetPan.y = damp(this.targetPan.y, 0, 2.2, dt);
+    }
+    this.zoom = damp(this.zoom, this.targetZoom, 14, dt);
+    this.rotation.x = damp(this.rotation.x, this.targetRotation.x, 14, dt);
+    this.rotation.y = damp(this.rotation.y, this.targetRotation.y, 14, dt);
+    this.pan.x = damp(this.pan.x, this.targetPan.x, 14, dt);
+    this.pan.y = damp(this.pan.y, this.targetPan.y, 14, dt);
     this.swipeField.x = damp(this.swipeField.x, 0, 2.5, dt);
     this.swipeField.y = damp(this.swipeField.y, 0, 2.5, dt);
 

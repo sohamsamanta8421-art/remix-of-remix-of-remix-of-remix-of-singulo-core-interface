@@ -22,6 +22,7 @@ export function SinguloCore({
       particleDensity: appearance.particleDensity,
       animationIntensity: appearance.animationIntensity,
       reducedMotion: appearance.reducedMotion,
+      theme: appearance.theme,
     });
     engine.mount(canvasRef.current);
     engineRef.current = engine;
@@ -44,6 +45,7 @@ export function SinguloCore({
       particleDensity: appearance.particleDensity,
       animationIntensity: appearance.animationIntensity,
       reducedMotion: appearance.reducedMotion,
+      theme: appearance.theme,
     });
   }, [appearance]);
 
