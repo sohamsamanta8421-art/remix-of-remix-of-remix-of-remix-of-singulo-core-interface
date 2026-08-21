@@ -23,6 +23,11 @@ const MODES: { id: GestureMode; label: string; hint: string }[] = [
   { id: "media", label: "Media", hint: "Two fingers play/pause · swipe track · thumb confirm" },
 ];
 
+const THEMES: { id: "ember" | "blue"; label: string }[] = [
+  { id: "ember", label: "Ember" },
+  { id: "blue", label: "Blue" },
+];
+
 const SPEEDS: { id: GestureSpeed; label: string }[] = [
   { id: "instant", label: "Instant" },
   { id: "fast", label: "Fast" },
@@ -78,6 +83,11 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const memory = useMemory((s) => s);
   const cameraActive = useSingulo((s) => s.cameraActive);
   const [tab, setTab] = useState<Tab>("Voice");
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("theme-blue", settings.appearance.theme === "blue");
+  }, [settings.appearance.theme]);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
   const [testing, setTesting] = useState(false);
@@ -480,6 +490,24 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
 
         {tab === "Appearance" ? (
           <div>
+            <Row label="Theme">
+              <span className="flex gap-1">
+                {THEMES.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => updateSettings("appearance", { theme: option.id })}
+                    className={`rounded-md border px-2 py-1 text-xs uppercase tracking-[0.15em] transition-colors ${
+                      settings.appearance.theme === option.id
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-border/60 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </span>
+            </Row>
             <Row label="Interface intensity">
               <Slider
                 value={settings.appearance.intensity}
