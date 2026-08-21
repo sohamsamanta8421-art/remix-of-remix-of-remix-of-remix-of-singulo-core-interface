@@ -39,6 +39,8 @@ function Index() {
   const transcriptRef = useRef<HTMLDivElement | null>(null);
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
+  const [chromeOpen, setChromeOpen] = useState(false);
+  const peakRef = useRef(0);
   const aiState = useSingulo((s) => s.aiState);
   const statusLine = useSingulo((s) => s.statusLine);
   const error = useSingulo((s) => s.error);
@@ -49,6 +51,11 @@ function Index() {
   const lastGesture = useSingulo((s) => s.lastGesture);
   const gestureMode = useSettings((s) => s.gesture.mode);
   const gestureSpeed = useSettings((s) => s.gesture.speed);
+  const theme = useSettings((s) => s.appearance.theme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("theme-blue", theme === "blue");
+  }, [theme]);
 
   useEffect(() => {
     hydrateSettings();
@@ -98,7 +105,13 @@ function Index() {
     setRecording(false);
     singuloStore.set({ micLevel: 0 });
     if (!recorder) return;
+    const peak = peakRef.current;
+    peakRef.current = 0;
     const blob = await recorder.stop();
+    if (peak < 0.045) {
+      setAiState("idle", "Nothing heard");
+      return;
+    }
     setAiState("thinking", "Transcribing");
     try {
       const body = new FormData();
@@ -124,8 +137,11 @@ function Index() {
       recorderRef.current = recorder;
       setRecording(true);
       setAiState("listening", "Listening");
+      peakRef.current = 0;
       levelTimer.current = setInterval(() => {
-        singuloStore.set({ micLevel: recorder.level() });
+        const level = recorder.level();
+        peakRef.current = Math.max(peakRef.current, level);
+        singuloStore.set({ micLevel: level });
       }, 60);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Microphone unavailable");
@@ -168,36 +184,48 @@ function Index() {
 
       <div className="pointer-events-none relative z-10 flex min-h-screen flex-col justify-between p-4 sm:p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-lg font-semibold tracking-[0.4em]">SINGULO</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
-              {aiState} · {statusLine}
-            </p>
-            {cameraActive ? (
-              <span className="flex items-center gap-1 rounded-full border border-primary/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-primary">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" /> Camera
-              </span>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => void gestures.toggle()}
-              className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
-            >
-              {gestures.active ? `Gestures · ${gestureMode}` : "Enable gestures"}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                singuloStore.set({ panel: panel === "settings" ? "none" : "settings" })
-              }
-              className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
-            >
-              Control
-            </button>
-          </div>
+          <button
+            type="button"
+            aria-label={chromeOpen ? "Hide interface controls" : "Show interface controls"}
+            aria-expanded={chromeOpen}
+            onClick={() => setChromeOpen((open) => !open)}
+            className={`pointer-events-auto h-2.5 w-2.5 rounded-full border transition-all ${
+              chromeOpen
+                ? "border-primary bg-primary"
+                : "border-border/70 bg-foreground/25 hover:bg-foreground/60"
+            }`}
+          />
+          {chromeOpen ? (
+            <div className="animate-hud-in flex flex-wrap items-center gap-2">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
+                {aiState} · {statusLine}
+              </p>
+              {cameraActive ? (
+                <span className="flex items-center gap-1 rounded-full border border-primary/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-primary">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" /> Camera
+                </span>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void gestures.toggle()}
+                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
+              >
+                {gestures.active ? `Gestures · ${gestureMode}` : "Enable gestures"}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  singuloStore.set({ panel: panel === "settings" ? "none" : "settings" })
+                }
+                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
+              >
+                Control
+              </button>
+            </div>
+          ) : null}
         </header>
 
-        {gestures.status || lastGesture ? (
+        {chromeOpen && (gestures.status || lastGesture) ? (
           <p className="label-hud absolute left-4 top-20 text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:left-6">
             {gestures.status ?? `${lastGesture} · ${gestureSpeed}`}
           </p>
