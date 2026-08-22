@@ -29,8 +29,6 @@ const STATE_LOOK: Record<AiState, { hue: number; spin: number; energy: number }>
   error: { hue: 0.02, spin: 0.05, energy: 0.55 },
 };
 
-const damp = (current: number, target: number, lambda: number, dt: number) =>
-  current + (target - current) * (1 - Math.exp(-lambda * dt));
 
 const BANDS = 12;
 
