@@ -442,14 +442,6 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                 className="h-4 w-4 accent-primary"
               />
             </Row>
-            <Row label="Auto mode switching">
-              <input
-                type="checkbox"
-                checked={settings.gesture.autoMode}
-                onChange={(event) => updateSettings("gesture", { autoMode: event.target.checked })}
-                className="h-4 w-4 accent-primary"
-              />
-            </Row>
             <Row label="Open palm interrupts speech">
               <input
                 type="checkbox"
