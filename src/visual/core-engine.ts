@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import type { AiState } from "@/types/singulo";
+import {
+  damp,
+  followTargets,
+  recenterTargets,
+  viewError,
+  type ViewTargets,
+} from "./motion";
 
 export interface CoreOptions {
   intensity: number;
