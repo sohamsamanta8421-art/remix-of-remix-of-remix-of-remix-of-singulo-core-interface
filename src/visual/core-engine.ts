@@ -81,6 +81,7 @@ export class SinguloCoreEngine {
   private fps = 60;
   /** Timestamp of the last user manipulation — drives auto-recentering. */
   private lastInput = 0;
+  private consumedInput = 0;
   /** Profiling counters (read by the perf overlay). */
   private recentering = false;
   private settleError = 0;
