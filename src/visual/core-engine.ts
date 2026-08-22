@@ -502,9 +502,11 @@ export class SinguloCoreEngine {
   private loop = () => {
     if (this.disposed || !this.renderer) return;
     this.raf = requestAnimationFrame(this.loop);
+    const loopStart = performance.now();
     const dt = Math.min(0.05, this.clock.getDelta());
     const time = this.clock.elapsedTime;
     this.fps = damp(this.fps, 1 / Math.max(dt, 0.0001), 1.5, dt);
+    this.frameMs = damp(this.frameMs, dt * 1000, 3, dt);
     const motion = this.options.reducedMotion ? 0.25 : this.options.animationIntensity;
 
     const raw = Math.max(this.levels.mic, this.levels.speech);
