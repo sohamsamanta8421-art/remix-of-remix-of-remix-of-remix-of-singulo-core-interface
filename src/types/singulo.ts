@@ -81,6 +81,7 @@ export interface Settings {
     particleDensity: number;
     animationIntensity: number;
     reducedMotion: boolean;
+    perfOverlay: boolean;
   };
 }
 

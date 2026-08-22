@@ -100,6 +100,7 @@ export const defaultSettings: Settings = {
     particleDensity: 1,
     animationIntensity: 1,
     reducedMotion: false,
+    perfOverlay: false,
   },
 };
 
