@@ -10,6 +10,7 @@ import { speak, stopSpeaking } from "@/lib/voice/tts";
 import { startRecording, type RecorderHandle } from "@/lib/voice/recorder";
 import { useGestures } from "@/hooks/use-gestures";
 import { SettingsPanel } from "@/components/SettingsPanel";
+import { PerfOverlay } from "@/components/PerfOverlay";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,6 +53,7 @@ function Index() {
   const gestureMode = useSettings((s) => s.gesture.mode);
   const gestureSpeed = useSettings((s) => s.gesture.speed);
   const theme = useSettings((s) => s.appearance.theme);
+  const perfOverlay = useSettings((s) => s.appearance.perfOverlay);
 
   useEffect(() => {
     document.documentElement.classList.toggle("theme-blue", theme === "blue");
@@ -188,15 +190,24 @@ function Index() {
             type="button"
             aria-label={chromeOpen ? "Hide interface controls" : "Show interface controls"}
             aria-expanded={chromeOpen}
+            aria-controls="singulo-chrome"
+            title={chromeOpen ? "Hide interface controls" : "Show interface controls"}
             onClick={() => setChromeOpen((open) => !open)}
-            className={`pointer-events-auto h-2.5 w-2.5 rounded-full border transition-all ${
-              chromeOpen
-                ? "border-primary bg-primary"
-                : "border-border/70 bg-foreground/25 hover:bg-foreground/60"
-            }`}
-          />
+            className="pointer-events-auto group -m-1 flex min-h-11 min-w-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <span
+              className={`h-2.5 w-2.5 rounded-full border transition-all duration-150 group-hover:scale-150 group-active:scale-90 group-focus-visible:scale-150 ${
+                chromeOpen
+                  ? "border-primary bg-primary shadow-[0_0_10px_hsl(var(--primary))]"
+                  : "border-border/70 bg-foreground/25 group-hover:border-primary group-hover:bg-primary/80"
+              }`}
+            />
+            <span className="sr-only">
+              {chromeOpen ? "Interface controls visible" : "Interface controls hidden"}
+            </span>
+          </button>
           {chromeOpen ? (
-            <div className="animate-hud-in flex flex-wrap items-center gap-2">
+            <div id="singulo-chrome" className="animate-hud-in flex flex-wrap items-center gap-2">
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
                 {aiState} · {statusLine}
               </p>
@@ -240,6 +251,8 @@ function Index() {
           </p>
         </div>
 
+
+        {perfOverlay ? <PerfOverlay getEngine={() => engineRef.current} /> : null}
 
         {panel === "settings" ? (
           <SettingsPanel onClose={() => singuloStore.set({ panel: "none" })} />

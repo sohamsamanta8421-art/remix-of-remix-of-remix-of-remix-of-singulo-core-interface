@@ -31,9 +31,6 @@ export function useGestures(
   actionsRef.current = actions;
 
   useEffect(() => {
-    const panelToggle = (panel: "settings" | "memory" | "conversation") =>
-      singuloStore.set({ panel: singuloStore.get().panel === panel ? "none" : panel });
-
     const router = createGestureRouter(
       {
         zoom: (delta) => getCore()?.zoomBy(delta),
@@ -45,10 +42,7 @@ export function useGestures(
         calm: (on) => getCore()?.setCalm(on),
         pointer: (position) => getCore()?.setPointer(position),
         select: () => getCore()?.emitPulse(1),
-        doubleSelect: () => {
-          getCore()?.emitPulse(1.4);
-          panelToggle("settings");
-        },
+        doubleSelect: () => getCore()?.emitPulse(1.4),
         grab: (on) => getCore()?.setGrabbed(on),
         swipeField: (direction) => getCore()?.pushField(direction),
         navigate: (direction) => {
@@ -58,7 +52,7 @@ export function useGestures(
         },
         scroll: (direction) => actionsRef.current.scroll?.(direction),
         interruptSpeech: () => stopSpeaking(),
-        secondaryMode: () => panelToggle("settings"),
+        secondaryMode: () => getCore()?.emitPulse(1.2),
         confirm: () => {
           getCore()?.emitPulse(1);
           const pending = singuloStore.get().pending;
@@ -73,7 +67,7 @@ export function useGestures(
             actionsRef.current.cancel?.();
           }
         },
-        quickControls: () => panelToggle("settings"),
+        quickControls: () => getCore()?.reset(),
         dial: (delta) => {
           const voice = settingsStore.get().voice;
           const volume = Math.max(0, Math.min(1, voice.volume + delta * 1.5));
@@ -107,7 +101,6 @@ export function useGestures(
         getContext: (): SinguloContext =>
           singuloStore.get().panel === "none" ? "visual" : "menu",
         getMode: () => settingsStore.get().gesture.mode,
-        autoMode: () => settingsStore.get().gesture.autoMode,
         isSpeaking: () => singuloStore.get().aiState === "speaking",
         palmInterrupts: () => settingsStore.get().gesture.palmInterrupts,
         depthSensitivity: () => settingsStore.get().gesture.depthSensitivity,

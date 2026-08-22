@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import type { AiState } from "@/types/singulo";
+import {
+  damp,
+  followTargets,
+  recenterTargets,
+  viewError,
+  type ViewTargets,
+} from "./motion";
 
 export interface CoreOptions {
   intensity: number;
@@ -22,8 +29,6 @@ const STATE_LOOK: Record<AiState, { hue: number; spin: number; energy: number }>
   error: { hue: 0.02, spin: 0.05, energy: 0.55 },
 };
 
-const damp = (current: number, target: number, lambda: number, dt: number) =>
-  current + (target - current) * (1 - Math.exp(-lambda * dt));
 
 const BANDS = 12;
 
@@ -76,6 +81,28 @@ export class SinguloCoreEngine {
   private fps = 60;
   /** Timestamp of the last user manipulation — drives auto-recentering. */
   private lastInput = 0;
+  private consumedInput = 0;
+  /** Profiling counters (read by the perf overlay). */
+  private recentering = false;
+  private settleError = 0;
+  private frameMs = 16.7;
+  private loopMs = 0;
+  private inputLatencyMs = 0;
+
+  /** Lightweight profiling snapshot for the perf overlay. */
+  getMetrics() {
+    return {
+      fps: this.fps,
+      frameMs: this.frameMs,
+      loopMs: this.loopMs,
+      inputLatencyMs: this.inputLatencyMs,
+      settleError: this.settleError,
+      recentering: this.recentering,
+      zoom: this.zoom,
+      pan: { x: this.pan.x, y: this.pan.y },
+      rotation: { x: this.rotation.x, y: this.rotation.y },
+    };
+  }
 
   constructor(options: CoreOptions) {
     this.options = options;
@@ -476,9 +503,11 @@ export class SinguloCoreEngine {
   private loop = () => {
     if (this.disposed || !this.renderer) return;
     this.raf = requestAnimationFrame(this.loop);
+    const loopStart = performance.now();
     const dt = Math.min(0.05, this.clock.getDelta());
     const time = this.clock.elapsedTime;
     this.fps = damp(this.fps, 1 / Math.max(dt, 0.0001), 1.5, dt);
+    this.frameMs = damp(this.frameMs, dt * 1000, 3, dt);
     const motion = this.options.reducedMotion ? 0.25 : this.options.animationIntensity;
 
     const raw = Math.max(this.levels.mic, this.levels.speech);
@@ -501,18 +530,17 @@ export class SinguloCoreEngine {
     this.spin = damp(this.spin, this.calm ? this.targetSpin * 0.3 : this.targetSpin, 3, dt);
     this.pulse = damp(this.pulse, 0, 3.2, dt);
     // Auto-recenter: drift view targets back to rest ~1.2s after the last input.
-    if (performance.now() - this.lastInput > 1200) {
-      this.targetZoom = damp(this.targetZoom, 1, 2.2, dt);
-      this.targetRotation.x = damp(this.targetRotation.x, -0.1, 2.2, dt);
-      this.targetRotation.y = damp(this.targetRotation.y, 0, 2.2, dt);
-      this.targetPan.x = damp(this.targetPan.x, 0, 2.2, dt);
-      this.targetPan.y = damp(this.targetPan.y, 0, 2.2, dt);
-    }
-    this.zoom = damp(this.zoom, this.targetZoom, 14, dt);
-    this.rotation.x = damp(this.rotation.x, this.targetRotation.x, 14, dt);
-    this.rotation.y = damp(this.rotation.y, this.targetRotation.y, 14, dt);
-    this.pan.x = damp(this.pan.x, this.targetPan.x, 14, dt);
-    this.pan.y = damp(this.pan.y, this.targetPan.y, 14, dt);
+    const targets: ViewTargets = {
+      zoom: this.targetZoom,
+      rotation: this.targetRotation,
+      pan: this.targetPan,
+    };
+    this.recentering = recenterTargets(targets, dt, performance.now() - this.lastInput);
+    this.targetZoom = targets.zoom;
+    const view: ViewTargets = { zoom: this.zoom, rotation: this.rotation, pan: this.pan };
+    followTargets(view, targets, dt);
+    this.zoom = view.zoom;
+    this.settleError = viewError(view, targets);
     this.swipeField.x = damp(this.swipeField.x, 0, 2.5, dt);
     this.swipeField.y = damp(this.swipeField.y, 0, 2.5, dt);
 
@@ -573,6 +601,11 @@ export class SinguloCoreEngine {
     }
 
     this.renderer.render(this.scene, this.camera);
+    if (this.lastInput > this.consumedInput) {
+      this.consumedInput = this.lastInput;
+      this.inputLatencyMs = loopStart - this.lastInput;
+    }
+    this.loopMs = damp(this.loopMs, performance.now() - loopStart, 4, dt);
   };
 
   dispose() {

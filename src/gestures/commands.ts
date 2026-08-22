@@ -37,7 +37,6 @@ export interface CommandTargets {
 export interface RouterOptions {
   getContext: () => SinguloContext;
   getMode: () => GestureMode;
-  autoMode: () => boolean;
   isSpeaking: () => boolean;
   palmInterrupts: () => boolean;
   depthSensitivity: () => boolean;
@@ -169,7 +168,6 @@ export function createGestureRouter(targets: CommandTargets, options: RouterOpti
         if (mode === "media") targets.mediaToggle();
         else {
           targets.secondaryMode();
-          if (options.autoMode()) targets.setMode("spatial");
         }
         return;
       }
