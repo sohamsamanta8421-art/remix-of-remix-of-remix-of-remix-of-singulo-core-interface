@@ -59,7 +59,7 @@ export interface Settings {
     hands: 1 | 2;
     mode: GestureMode;
     speed: GestureSpeed;
-    autoMode: boolean;
+    
     holdMs: number;
     depthSensitivity: boolean;
     sensitivity: Sensitivity;
