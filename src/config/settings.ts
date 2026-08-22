@@ -53,7 +53,7 @@ export const speedProfiles: Record<
   GestureSpeed,
   { confirmFrames: number; cooldownMs: number; swipeCooldownMs: number; minCutoff: number }
 > = {
-  instant: { confirmFrames: 1, cooldownMs: 70, swipeCooldownMs: 140, minCutoff: 3.2 },
+  instant: { confirmFrames: 1, cooldownMs: 40, swipeCooldownMs: 110, minCutoff: 4.2 },
   fast: { confirmFrames: 1, cooldownMs: 110, swipeCooldownMs: 220, minCutoff: 2.4 },
   balanced: { confirmFrames: 2, cooldownMs: 200, swipeCooldownMs: 420, minCutoff: 1.6 },
   safe: { confirmFrames: 3, cooldownMs: 320, swipeCooldownMs: 700, minCutoff: 1.2 },
@@ -76,11 +76,11 @@ export const defaultSettings: Settings = {
     mode: "navigation",
     speed: "instant",
     
-    holdMs: 700,
+    holdMs: 320,
     depthSensitivity: true,
     sensitivity: "high",
     smoothing: "low",
-    confidence: 0.62,
+    confidence: 0.5,
     zoomSensitivity: 1,
     rotationSensitivity: 1,
     swipeSensitivity: 1,

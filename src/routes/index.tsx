@@ -10,6 +10,7 @@ import { speak, stopSpeaking } from "@/lib/voice/tts";
 import { startRecording, type RecorderHandle } from "@/lib/voice/recorder";
 import { useGestures } from "@/hooks/use-gestures";
 import { SettingsPanel } from "@/components/SettingsPanel";
+import { PerfOverlay } from "@/components/PerfOverlay";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,6 +53,7 @@ function Index() {
   const gestureMode = useSettings((s) => s.gesture.mode);
   const gestureSpeed = useSettings((s) => s.gesture.speed);
   const theme = useSettings((s) => s.appearance.theme);
+  const perfOverlay = useSettings((s) => s.appearance.perfOverlay);
 
   useEffect(() => {
     document.documentElement.classList.toggle("theme-blue", theme === "blue");
@@ -205,7 +207,7 @@ function Index() {
             </span>
           </button>
           {chromeOpen ? (
-            <div className="animate-hud-in flex flex-wrap items-center gap-2">
+            <div id="singulo-chrome" className="animate-hud-in flex flex-wrap items-center gap-2">
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
                 {aiState} · {statusLine}
               </p>
@@ -249,6 +251,8 @@ function Index() {
           </p>
         </div>
 
+
+        {perfOverlay ? <PerfOverlay getEngine={() => engineRef.current} /> : null}
 
         {panel === "settings" ? (
           <SettingsPanel onClose={() => singuloStore.set({ panel: "none" })} />
