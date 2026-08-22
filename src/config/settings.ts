@@ -75,7 +75,7 @@ export const defaultSettings: Settings = {
     hands: 2,
     mode: "navigation",
     speed: "instant",
-    autoMode: true,
+    
     holdMs: 700,
     depthSensitivity: true,
     sensitivity: "high",
