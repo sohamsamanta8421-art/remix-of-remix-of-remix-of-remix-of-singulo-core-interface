@@ -81,6 +81,27 @@ export class SinguloCoreEngine {
   private fps = 60;
   /** Timestamp of the last user manipulation — drives auto-recentering. */
   private lastInput = 0;
+  /** Profiling counters (read by the perf overlay). */
+  private recentering = false;
+  private settleError = 0;
+  private frameMs = 16.7;
+  private loopMs = 0;
+  private inputLatencyMs = 0;
+
+  /** Lightweight profiling snapshot for the perf overlay. */
+  getMetrics() {
+    return {
+      fps: this.fps,
+      frameMs: this.frameMs,
+      loopMs: this.loopMs,
+      inputLatencyMs: this.inputLatencyMs,
+      settleError: this.settleError,
+      recentering: this.recentering,
+      zoom: this.zoom,
+      pan: { x: this.pan.x, y: this.pan.y },
+      rotation: { x: this.rotation.x, y: this.rotation.y },
+    };
+  }
 
   constructor(options: CoreOptions) {
     this.options = options;
