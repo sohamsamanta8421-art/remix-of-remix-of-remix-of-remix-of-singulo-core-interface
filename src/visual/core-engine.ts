@@ -600,6 +600,11 @@ export class SinguloCoreEngine {
     }
 
     this.renderer.render(this.scene, this.camera);
+    if (this.lastInput > this.consumedInput) {
+      this.consumedInput = this.lastInput;
+      this.inputLatencyMs = loopStart - this.lastInput;
+    }
+    this.loopMs = damp(this.loopMs, performance.now() - loopStart, 4, dt);
   };
 
   dispose() {
