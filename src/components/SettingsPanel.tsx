@@ -529,6 +529,16 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                 }
               />
             </Row>
+            <Row label="Performance profiler">
+              <input
+                type="checkbox"
+                checked={settings.appearance.perfOverlay}
+                onChange={(event) =>
+                  updateSettings("appearance", { perfOverlay: event.target.checked })
+                }
+                className="h-4 w-4 accent-primary"
+              />
+            </Row>
             <Row label="Reduced motion">
               <input
                 type="checkbox"
