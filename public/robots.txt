@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://singulo-core-interface.lovable.app/sitemap.xml

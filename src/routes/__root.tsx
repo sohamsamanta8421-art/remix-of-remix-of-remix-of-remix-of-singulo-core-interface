@@ -77,14 +77,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SINGULO — Holographic AI Core" },
+      {
+        name: "description",
+        content:
+          "SINGULO is a holographic AI core you command with your voice and hand gestures in the browser.",
+      },
+      { property: "og:site_name", content: "SINGULO" },
+      { property: "og:title", content: "SINGULO — Holographic AI Core" },
+      {
+        property: "og:description",
+        content:
+          "Command a reactive 3D AI core with voice and hand gestures, straight from the browser.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 import { Route as ApiAiSpeakRouteImport } from './routes/api/ai/speak'
 import { Route as ApiAiTranscribeRouteImport } from './routes/api/ai/transcribe'
@@ -17,6 +18,11 @@ import { Route as ApiAiTranscribeRouteImport } from './routes/api/ai/transcribe'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiChatRoute = ApiAiChatRouteImport.update({
@@ -37,12 +43,14 @@ const ApiAiTranscribeRoute = ApiAiTranscribeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/speak': typeof ApiAiSpeakRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/speak': typeof ApiAiSpeakRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
@@ -50,20 +58,38 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/speak': typeof ApiAiSpeakRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/ai/chat' | '/api/ai/speak' | '/api/ai/transcribe'
+  fullPaths:
+    | '/'
+    | '/sitemap.xml'
+    | '/api/ai/chat'
+    | '/api/ai/speak'
+    | '/api/ai/transcribe'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/ai/chat' | '/api/ai/speak' | '/api/ai/transcribe'
-  id: '__root__' | '/' | '/api/ai/chat' | '/api/ai/speak' | '/api/ai/transcribe'
+  to:
+    | '/'
+    | '/sitemap.xml'
+    | '/api/ai/chat'
+    | '/api/ai/speak'
+    | '/api/ai/transcribe'
+  id:
+    | '__root__'
+    | '/'
+    | '/sitemap.xml'
+    | '/api/ai/chat'
+    | '/api/ai/speak'
+    | '/api/ai/transcribe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
   ApiAiSpeakRoute: typeof ApiAiSpeakRoute
   ApiAiTranscribeRoute: typeof ApiAiTranscribeRoute
@@ -76,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/chat': {
@@ -104,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiAiChatRoute: ApiAiChatRoute,
   ApiAiSpeakRoute: ApiAiSpeakRoute,
   ApiAiTranscribeRoute: ApiAiTranscribeRoute,
