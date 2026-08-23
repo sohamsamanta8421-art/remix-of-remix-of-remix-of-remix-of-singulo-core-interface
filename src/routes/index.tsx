@@ -27,8 +27,10 @@ export const Route = createFileRoute("/")({
         content: "Talk, point and pinch to command a living holographic AI core.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://singulo-core-interface.lovable.app/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://singulo-core-interface.lovable.app/" }],
   }),
   component: Index,
 });
