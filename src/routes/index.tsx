@@ -242,12 +242,17 @@ function Index() {
           </p>
         ) : null}
 
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <p className="glow-core text-2xl font-semibold tracking-[0.55em] text-foreground sm:text-4xl">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+          <h1 className="glow-core text-2xl font-semibold tracking-[0.55em] text-foreground sm:text-4xl">
             SINGULO
+          </h1>
+          <p className="label-hud mt-2 text-[10px] tracking-[0.35em] text-primary sm:text-xs">
+            Holographic AI voice &amp; gesture interface
           </p>
-          <p className="label-hud mt-2 text-[10px] tracking-[0.6em] text-primary sm:text-xs">
-            soham
+          <p className="mt-4 max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            Speak or type a command and the reactive 3D core answers out loud. Enable the camera to
+            pinch, point and swipe in mid-air — gestures zoom, rotate, pan and pulse the core
+            instantly, with no menus in the way.
           </p>
         </div>
 
