@@ -260,7 +260,6 @@ class GestureEngineImpl {
     if (!this.running || !this.video || !this.landmarker || !this.settings) return;
     this.schedule();
 
-
     const video = this.video;
     if (video.readyState < 2) return;
     const now = performance.now();
@@ -272,13 +271,27 @@ class GestureEngineImpl {
     let result;
     try {
       result = this.landmarker.detectForVideo(video, timestamp);
+      this.errorStreak = 0;
     } catch {
+      // Transient inference failures are normal (tab hidden, GPU context lost).
+      // Only give up after a sustained streak so tracking recovers by itself.
+      this.errorStreak += 1;
+      if (this.errorStreak > 30) {
+        this.errorStreak = 0;
+        this.resetTracking();
+      }
       return;
     }
     const processingMs = performance.now() - started;
 
+    if (!result?.landmarks?.length) {
+      // Hand lost: drop per-hand state so the next detection starts clean.
+      this.resetTracking();
+    }
+
     this.frameTimes.push(now);
-    this.frameTimes = this.frameTimes.filter((t) => now - t < 1000);
+    while (this.frameTimes.length && now - this.frameTimes[0]! > 1000) this.frameTimes.shift();
+
 
     const g = this.settings;
     const handednessList = result.handedness ?? result.handednesses ?? [];
