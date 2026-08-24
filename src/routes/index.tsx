@@ -182,69 +182,45 @@ function Index() {
     [],
   );
 
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      <SinguloCore onReady={(engine) => (engineRef.current = engine)} />
+  // Global shortcuts — suppressed while typing in a field.
+  useEffect(() => {
+    const isTyping = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return (
+        tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable === true
+      );
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "Escape") {
+        if (singuloStore.get().panel !== "none") singuloStore.set({ panel: "none" });
+        else setChromeOpen(false);
+        return;
+      }
+      if (isTyping(event.target)) return;
+      const key = event.key.toLowerCase();
+      if (key === "c") {
+        event.preventDefault();
+        setChromeOpen((open) => !open);
+      } else if (key === "g") {
+        event.preventDefault();
+        void gestures.toggle();
+      } else if (key === "m") {
+        event.preventDefault();
+        toggleMic();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [gestures, toggleMic]);
 
-      <div className="pointer-events-none relative z-10 flex min-h-screen flex-col justify-between p-4 sm:p-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            aria-label={chromeOpen ? "Hide interface controls" : "Show interface controls"}
-            aria-expanded={chromeOpen}
-            aria-controls="singulo-chrome"
-            title={chromeOpen ? "Hide interface controls" : "Show interface controls"}
-            onClick={() => setChromeOpen((open) => !open)}
-            className="pointer-events-auto group -m-1 flex min-h-11 min-w-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <span
-              className={`h-2.5 w-2.5 rounded-full border transition-all duration-150 group-hover:scale-150 group-active:scale-90 group-focus-visible:scale-150 ${
-                chromeOpen
-                  ? "border-primary bg-primary shadow-[0_0_10px_hsl(var(--primary))]"
-                  : "border-border/70 bg-foreground/25 group-hover:border-primary group-hover:bg-primary/80"
-              }`}
-            />
-            <span className="sr-only">
-              {chromeOpen ? "Interface controls visible" : "Interface controls hidden"}
-            </span>
-          </button>
-          {chromeOpen ? (
-            <div id="singulo-chrome" className="animate-hud-in flex flex-wrap items-center gap-2">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
-                {aiState} · {statusLine}
-              </p>
-              {cameraActive ? (
-                <span className="flex items-center gap-1 rounded-full border border-primary/50 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-primary">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" /> Camera
-                </span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => void gestures.toggle()}
-                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
-              >
-                {gestures.active ? `Gestures · ${gestureMode}` : "Enable gestures"}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  singuloStore.set({ panel: panel === "settings" ? "none" : "settings" })
-                }
-                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
-              >
-                Control
-              </button>
-            </div>
-          ) : null}
-        </header>
-
-        {chromeOpen && (gestures.status || lastGesture) ? (
-          <p className="label-hud absolute left-4 top-20 text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:left-6">
-            {gestures.status ?? `${lastGesture} · ${gestureSpeed}`}
-          </p>
-        ) : null}
-
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+  if (mode === "home") {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+        <SinguloCore onReady={(engine) => (engineRef.current = engine)} />
+        <div className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
           <h1 className="glow-core text-2xl font-semibold tracking-[0.55em] text-foreground sm:text-4xl">
             SINGULO
           </h1>
@@ -256,8 +232,74 @@ function Index() {
             pinch, point and swipe in mid-air — gestures zoom, rotate, pan and pulse the core
             instantly, with no menus in the way.
           </p>
+          <p className="mt-3 max-w-md text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80">
+            Shortcuts · C controls · G gestures · M microphone · Esc close
+          </p>
+          <button
+            type="button"
+            onClick={() => setMode("core")}
+            className="pointer-events-auto mt-8 rounded-full border border-primary/60 bg-primary/10 px-6 py-3 text-xs uppercase tracking-[0.3em] text-primary backdrop-blur transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Interact with Singulo
+          </button>
         </div>
+      </main>
+    );
+  }
 
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <SinguloCore onReady={(engine) => (engineRef.current = engine)} />
+
+      <div className="pointer-events-none relative z-10 flex min-h-screen flex-col justify-between p-4 sm:p-6">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <ChromeTrigger open={chromeOpen} onToggle={() => setChromeOpen((open) => !open)} />
+          {chromeOpen ? (
+            <div id="singulo-chrome" className="animate-hud-in flex flex-wrap items-center gap-2">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground sm:text-xs">
+                {aiState} · {statusLine}
+              </p>
+              <PrivacyIndicator cameraActive={cameraActive} modelCached={isModelCached()} />
+              <button
+                type="button"
+                onClick={() => void gestures.toggle()}
+                aria-keyshortcuts="g"
+                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
+              >
+                {gestures.active ? `Gestures · ${gestureMode}` : "Enable gestures"}
+              </button>
+              <button
+                type="button"
+                onClick={() => engineRef.current?.reset()}
+                title="Return Singulo to its default centre position"
+                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
+              >
+                Default position
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  singuloStore.set({ panel: panel === "settings" ? "none" : "settings" })
+                }
+                className="pointer-events-auto rounded-full border border-border/70 bg-card/50 px-3 py-1 text-[10px] uppercase tracking-[0.2em] backdrop-blur transition-colors hover:bg-card/80"
+              >
+                Control
+              </button>
+            </div>
+          ) : cameraActive ? (
+            <PrivacyIndicator cameraActive modelCached={isModelCached()} />
+          ) : null}
+        </header>
+
+        {chromeOpen && (gestures.status || lastGesture) ? (
+          <p className="label-hud absolute left-4 top-20 text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:left-6">
+            {gestures.status ?? `${lastGesture} · ${gestureSpeed}`}
+          </p>
+        ) : null}
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-10 flex justify-center">
+          <p className="label-hud text-[10px] tracking-[0.45em] text-muted-foreground">Soham</p>
+        </div>
 
         {perfOverlay ? <PerfOverlay getEngine={() => engineRef.current} /> : null}
 
@@ -287,49 +329,54 @@ function Index() {
           </div>
         ) : null}
 
-        <section className="mx-auto w-full max-w-2xl space-y-3">
-          {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}
-          <div ref={transcriptRef} className="max-h-56 space-y-2 overflow-y-auto text-sm">
-            {session.slice(-8).map((message) => (
-              <p key={message.id} className="text-muted-foreground">
-                <span className="mr-2 text-xs uppercase tracking-widest">{message.role}</span>
-                {message.content}
-              </p>
-            ))}
-          </div>
-          <form
-            className="pointer-events-auto flex gap-2 rounded-xl border border-border/60 bg-card/40 p-2 backdrop-blur"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (draft.trim()) void submit(draft);
-            }}
-          >
-            <button
-              type="button"
-              onClick={toggleMic}
-              aria-label={recording ? "Stop listening" : "Start listening"}
-              className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
-                recording
-                  ? "border-primary bg-primary/20 text-primary"
-                  : "border-border/60 text-muted-foreground hover:text-foreground"
-              }`}
+        {chromeOpen ? (
+          <section className="mx-auto w-full max-w-2xl space-y-3">
+            {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}
+            <div ref={transcriptRef} className="max-h-56 space-y-2 overflow-y-auto text-sm">
+              {session.slice(-8).map((message) => (
+                <p key={message.id} className="text-muted-foreground">
+                  <span className="mr-2 text-xs uppercase tracking-widest">{message.role}</span>
+                  {message.content}
+                </p>
+              ))}
+            </div>
+            <form
+              className="pointer-events-auto flex gap-2 rounded-xl border border-border/60 bg-card/40 p-2 backdrop-blur"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (draft.trim()) void submit(draft);
+              }}
             >
-              {recording ? "◉ Listening" : "◎ Mic"}
-            </button>
-            <input
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder="Speak or type a command…"
-              className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              Send
-            </button>
-          </form>
-        </section>
+              <button
+                type="button"
+                onClick={toggleMic}
+                aria-label={recording ? "Stop listening" : "Start listening"}
+                aria-keyshortcuts="m"
+                className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  recording
+                    ? "border-primary bg-primary/20 text-primary"
+                    : "border-border/60 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {recording ? "◉ Listening" : "◎ Mic"}
+              </button>
+              <input
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder="Speak or type a command…"
+                className="flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+              >
+                Send
+              </button>
+            </form>
+          </section>
+        ) : (
+          <div />
+        )}
       </div>
     </main>
   );
