@@ -24,6 +24,34 @@ interface Landmarker {
 const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+const MODEL_CACHE = "singulo-gesture-models-v1";
+
+let modelCached = false;
+/** True once the hand model is stored in the Cache API (offline-capable). */
+export function isModelCached() {
+  return modelCached;
+}
+
+/** Fetch the model once and keep the bytes in the Cache API for offline use. */
+async function loadModelBuffer(): Promise<ArrayBuffer | null> {
+  try {
+    if (typeof caches === "undefined") return null;
+    const cache = await caches.open(MODEL_CACHE);
+    let hit = await cache.match(MODEL_URL);
+    if (!hit) {
+      const response = await fetch(MODEL_URL);
+      if (!response.ok) return null;
+      await cache.put(MODEL_URL, response.clone());
+      hit = await cache.match(MODEL_URL);
+    }
+    if (!hit) return null;
+    modelCached = true;
+    return await hit.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
 
 /**
  * GestureEngine — camera → MediaPipe hand landmarks → smoothing → pose
