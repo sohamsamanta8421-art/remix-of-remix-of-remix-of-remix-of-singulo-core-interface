@@ -46,6 +46,8 @@ function Index() {
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
   const [chromeOpen, setChromeOpen] = useState(false);
+  /** "home" = landing screen with all copy, "core" = clean immersive AI mode. */
+  const [mode, setMode] = useState<"home" | "core">("home");
   const peakRef = useRef(0);
   const aiState = useSingulo((s) => s.aiState);
   const statusLine = useSingulo((s) => s.statusLine);
