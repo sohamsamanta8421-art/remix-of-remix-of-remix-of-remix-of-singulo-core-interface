@@ -240,9 +240,26 @@ class GestureEngineImpl {
     return hand;
   }
 
+  /**
+   * Schedule the next inference. Prefers requestVideoFrameCallback so we run
+   * exactly once per camera frame (lower latency, no wasted GPU work).
+   */
+  private schedule() {
+    const video = this.video as (HTMLVideoElement & {
+      requestVideoFrameCallback?: (cb: () => void) => number;
+    }) | null;
+    if (!this.running || !video) return;
+    if (typeof video.requestVideoFrameCallback === "function") {
+      this.raf = video.requestVideoFrameCallback(() => this.loop());
+    } else {
+      this.raf = requestAnimationFrame(this.loop);
+    }
+  }
+
   private loop = () => {
     if (!this.running || !this.video || !this.landmarker || !this.settings) return;
-    this.raf = requestAnimationFrame(this.loop);
+    this.schedule();
+
 
     const video = this.video;
     if (video.readyState < 2) return;
