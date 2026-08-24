@@ -9,8 +9,11 @@ import { sendMessage } from "@/lib/ai/conversation";
 import { speak, stopSpeaking } from "@/lib/voice/tts";
 import { startRecording, type RecorderHandle } from "@/lib/voice/recorder";
 import { useGestures } from "@/hooks/use-gestures";
+import { isModelCached } from "@/gestures/engine";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { PerfOverlay } from "@/components/PerfOverlay";
+import { ChromeTrigger } from "@/components/ChromeTrigger";
+import { PrivacyIndicator } from "@/components/PrivacyIndicator";
 
 export const Route = createFileRoute("/")({
   head: () => ({
