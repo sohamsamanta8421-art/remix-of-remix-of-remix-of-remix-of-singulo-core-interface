@@ -128,25 +128,44 @@ class GestureEngineImpl {
     this.settings = gesture;
 
     const { FilesetResolver, HandLandmarker } = await import("@mediapipe/tasks-vision");
-    const fileset = await FilesetResolver.forVisionTasks(WASM_BASE);
-    this.landmarker = (await HandLandmarker.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
-      runningMode: "VIDEO",
-      numHands: gesture.hands,
-      minHandDetectionConfidence: 0.4,
-      minTrackingConfidence: 0.4,
-      minHandPresenceConfidence: 0.4,
-    })) as unknown as Landmarker;
-
-    this.stream = await navigator.mediaDevices.getUserMedia({
+    // Start the camera and the model load in parallel — the camera is the slow part.
+    const streamPromise = navigator.mediaDevices.getUserMedia({
       video: {
         ...(gesture.cameraId ? { deviceId: { exact: gesture.cameraId } } : { facingMode: "user" }),
         width: { ideal: 640 },
         height: { ideal: 480 },
-        frameRate: { ideal: 30 },
+        frameRate: { ideal: 60 },
       },
       audio: false,
     });
+
+    const [fileset, buffer] = await Promise.all([
+      FilesetResolver.forVisionTasks(WASM_BASE),
+      loadModelBuffer(),
+    ]);
+
+    const baseOptions = buffer
+      ? { modelAssetBuffer: new Uint8Array(buffer), delegate: "GPU" as const }
+      : { modelAssetPath: MODEL_URL, delegate: "GPU" as const };
+
+    const create = (delegate: "GPU" | "CPU") =>
+      HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { ...baseOptions, delegate },
+        runningMode: "VIDEO",
+        numHands: gesture.hands,
+        minHandDetectionConfidence: 0.35,
+        minTrackingConfidence: 0.35,
+        minHandPresenceConfidence: 0.35,
+      });
+
+    try {
+      this.landmarker = (await create("GPU")) as unknown as Landmarker;
+    } catch {
+      this.landmarker = (await create("CPU")) as unknown as Landmarker;
+    }
+
+    this.stream = await streamPromise;
+
 
     const video = document.createElement("video");
     video.playsInline = true;
