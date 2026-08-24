@@ -84,10 +84,20 @@ export class SinguloCoreEngine {
   private consumedInput = 0;
   /** Profiling counters (read by the perf overlay). */
   private recentering = false;
+  /**
+   * When false (default) the core keeps whatever position/zoom/rotation the
+   * user gestured it into. Reset happens only via reset().
+   */
+  private autoRecenter = false;
   private settleError = 0;
   private frameMs = 16.7;
   private loopMs = 0;
   private inputLatencyMs = 0;
+
+  /** Opt in/out of drifting back to centre after idle input. */
+  setAutoRecenter(on: boolean) {
+    this.autoRecenter = on;
+  }
 
   /** Lightweight profiling snapshot for the perf overlay. */
   getMetrics() {
