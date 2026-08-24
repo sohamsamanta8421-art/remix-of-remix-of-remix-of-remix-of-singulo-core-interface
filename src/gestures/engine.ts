@@ -83,6 +83,22 @@ class GestureEngineImpl {
   private lastBothRaised = 0;
   private frameTimes: number[] = [];
   private lastTwoHandDistance: number | null = null;
+  /** Consecutive inference failures — used for graceful recovery. */
+  private errorStreak = 0;
+
+  /**
+   * Drop transient per-hand tracking state (smoothers keep their identity but
+   * velocity/hold/swipe history is cleared) so losing a hand never leaves the
+   * recognisers in a stuck state.
+   */
+  private resetTracking() {
+    if (!this.lastPositions.size && !this.twoHandLast) return;
+    this.lastPositions.clear();
+    this.holdFired.clear();
+    this.circles.forEach((c) => c.reset?.());
+    this.twoHandLast = null;
+    this.lastTwoHandDistance = null;
+  }
 
   isRunning() {
     return this.running;
