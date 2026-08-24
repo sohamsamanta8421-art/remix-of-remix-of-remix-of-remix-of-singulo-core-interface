@@ -111,11 +111,20 @@ export function useGestures(
       },
     );
 
+    // Gesture events arrive every camera frame. Routing them is cheap (it
+    // talks straight to Three.js), but writing to the store re-renders React,
+    // so the label is only published when it actually changes and at most a
+    // few times per second.
+    let lastLabel = "";
+    let lastPublished = 0;
     const unsubscribe = GestureEngine.subscribe((event) => {
       router(event);
-      singuloStore.set({
-        lastGesture: `${event.gesture}${event.variant ? ` · ${event.variant}` : ""} · ${event.phase}`,
-      });
+      const label = `${event.gesture}${event.variant ? ` · ${event.variant}` : ""} · ${event.phase}`;
+      const now = event.timestamp ?? performance.now();
+      if (label === lastLabel || now - lastPublished < 200) return;
+      lastLabel = label;
+      lastPublished = now;
+      singuloStore.set({ lastGesture: label });
     });
     return () => {
       unsubscribe();

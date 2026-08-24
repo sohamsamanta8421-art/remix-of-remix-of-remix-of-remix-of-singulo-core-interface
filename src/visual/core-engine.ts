@@ -84,10 +84,20 @@ export class SinguloCoreEngine {
   private consumedInput = 0;
   /** Profiling counters (read by the perf overlay). */
   private recentering = false;
+  /**
+   * When false (default) the core keeps whatever position/zoom/rotation the
+   * user gestured it into. Reset happens only via reset().
+   */
+  private autoRecenter = false;
   private settleError = 0;
   private frameMs = 16.7;
   private loopMs = 0;
   private inputLatencyMs = 0;
+
+  /** Opt in/out of drifting back to centre after idle input. */
+  setAutoRecenter(on: boolean) {
+    this.autoRecenter = on;
+  }
 
   /** Lightweight profiling snapshot for the perf overlay. */
   getMetrics() {
@@ -529,13 +539,16 @@ export class SinguloCoreEngine {
     this.energy = damp(this.energy, energyTarget, 5, dt);
     this.spin = damp(this.spin, this.calm ? this.targetSpin * 0.3 : this.targetSpin, 3, dt);
     this.pulse = damp(this.pulse, 0, 3.2, dt);
-    // Auto-recenter: drift view targets back to rest ~1.2s after the last input.
+    // Position persistence: the core stays exactly where the user left it.
+    // Auto-recenter only runs when explicitly enabled (off by default).
     const targets: ViewTargets = {
       zoom: this.targetZoom,
       rotation: this.targetRotation,
       pan: this.targetPan,
     };
-    this.recentering = recenterTargets(targets, dt, performance.now() - this.lastInput);
+    this.recentering = this.autoRecenter
+      ? recenterTargets(targets, dt, performance.now() - this.lastInput)
+      : false;
     this.targetZoom = targets.zoom;
     const view: ViewTargets = { zoom: this.zoom, rotation: this.rotation, pan: this.pan };
     followTargets(view, targets, dt);
